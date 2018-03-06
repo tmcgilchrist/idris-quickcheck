@@ -2,7 +2,7 @@ module Random
 
 import System
 
-class RandomGen g where
+interface RandomGen g where
   next : g -> (Int, g)
   genRange : g -> (Int,Int)
   split : g -> (g, g)
@@ -28,11 +28,11 @@ newStdGen = do t <- mkForeign (FFun "time" [FPtr] FInt) prim__null
 --newStdGen = pure (MkStdGen 23462 254334222987)
 
 
-instance Show StdGen where
+implementation Show StdGen where
   show (MkStdGen i j) = "MkStdGen " ++ show i ++ " " ++ show j
 
 -- Blatantly stolen from Haskell
-instance RandomGen StdGen where
+implementation RandomGen StdGen where
   next (MkStdGen s1 s2) =
     let k : Int = assert_total $ s1 `prim__sdivInt` 53668 in
     let s1' : Int  = 40014 * (s1 - k * 53668) - k * 12211 in
@@ -61,11 +61,11 @@ instance RandomGen StdGen where
 
 
 
-class Random a where
+interface Random a where
   randomR : RandomGen g => (a, a) -> g -> (a, g)
   random : RandomGen g => g -> (a, g)
 
-instance Random Int where
+implementation Random Int where
   randomR (lo, hi) gen = assert_total $ myRandomR lo hi gen
     where
           myRandomR : RandomGen g => Int -> Int -> g -> (Int, g)
@@ -101,6 +101,6 @@ instance Random Int where
 --  random gen = let gen' = next gen in
 --               (cast (fst gen'), snd gen')
 
-instance Random () where
+implementation Random () where
   randomR ((), ()) gen = ((), gen)
   random gen = ((), gen)
